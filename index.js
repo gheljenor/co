@@ -6,6 +6,12 @@
 var slice = Array.prototype.slice;
 
 /**
+ * Empty function to prevent unhandled Promise rejection warnings
+ */
+
+var noop = function() {};
+
+/**
  * Expose `co`.
  */
 
@@ -47,7 +53,7 @@ function co(gen) {
   // we wrap everything in a promise to avoid promise chaining,
   // which leads to memory leak errors.
   // see https://github.com/tj/co/issues/180
-  return new Promise(function(resolve, reject) {
+  var promise = new Promise(function(resolve, reject) {
     if (typeof gen === 'function') gen = gen.apply(ctx, args);
     if (!gen || typeof gen.next !== 'function') return resolve(gen);
 
@@ -103,6 +109,8 @@ function co(gen) {
         + 'but the following object was passed: "' + String(ret.value) + '"'));
     }
   });
+  promise.catch(noop);
+  return promise;
 }
 
 /**
@@ -218,7 +226,7 @@ function isGenerator(obj) {
  * @return {Boolean}
  * @api private
  */
- 
+
 function isGeneratorFunction(obj) {
   var constructor = obj.constructor;
   if (!constructor) return false;
